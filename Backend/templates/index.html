@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake Profile Detection on Social Networks</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(100, 150, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(30, 30, 60, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      text-align: center;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .header-instagram {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .instagram-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+      border-radius: 50%;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .instagram-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .instagram-text {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: capitalize;
+    }
+
+    .header-instagram:hover .instagram-icon {
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 6px 20px rgba(240, 148, 51, 0.4);
+    }
+
+    .header-instagram:hover .instagram-text {
+      transform: translateX(3px);
+    }
+
+    .header-icon {
+      width: 35px;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 8px;
+      font-size: 20px;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .container {
+      background: linear-gradient(135deg, rgba(30, 30, 60, 0.6) 0%, rgba(50, 40, 80, 0.6) 100%);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.3);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(102, 126, 234, 0.3);
+      padding: 50px 40px 40px;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      color: #fff;
+      margin-top: 80px;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 25px;
+      font-weight: 300;
+    }
+
+    .form-group {
+      margin: 15px 0;
+      text-align: left;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 15px 12px 40px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 16px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .reset-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .reset-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .result {
+      margin-top: 25px;
+      padding: 20px;
+      border-radius: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      animation: resultPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes resultPop {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .result.fake {
+      background: rgba(255, 71, 87, 0.3);
+      border: 2px solid #ff4757;
+      color: #ffcccc;
+    }
+
+    .result.real {
+      background: rgba(46, 213, 115, 0.3);
+      border: 2px solid #2ed573;
+      color: #ccffcc;
+    }
+
+    .result-icon {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 20px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .container {
+        padding: 40px 25px 30px;
+        margin-top: 100px;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 12px 15px;
+      }
+    }
+
+    .slider-container {
+      margin: 10px 0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      padding: 0;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+    }
+
+    .value-display {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 5px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="header-instagram" title="Follow us on Instagram">
+      <div class="instagram-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.266.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1 1 12.324 0 6.162 6.162 0 0 1-12.324 0zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm4.965-10.322a1.44 1.44 0 1 1 2.881.001 1.44 1.44 0 0 1-2.881-.001z"/>
+        </svg>
+      </div>
+      <span class="instagram-text">instagram</span>
+    </a>
+    <h1>
+      <div class="header-icon">🔍</div>
+      Fake Profile Detection on Social Networks
+    </h1>
+  </div>
+
+  <div class="container">
+    <p class="subtitle">Analyze account metrics to detect potential fake profiles</p>
+
+    <form method="POST" action="/predict" id="profileForm">
+      <div class="form-group">
+        <label for="profile_pic">📸 Has Profile Picture</label>
+        <div class="input-wrapper">
+          <span class="input-icon">✓</span>
+          <input type="number" id="profile_pic" name="has_profile_pic" min="0" max="1" placeholder="0 or 1 (1=Yes, 0=No)" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="username_len">👤 Username Length</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📝</span>
+          <input type="number" id="username_len" name="username_length" min="1" placeholder="Characters in username" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="digits">🔢 Digits in Username</label>
+        <div class="input-wrapper">
+          <span class="input-icon">1️⃣</span>
+          <input type="number" id="digits" name="num_digits_in_username" min="0" placeholder="Count of digits (0-10)" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bio">📄 Bio Length</label>
+        <div class="input-wrapper">
+          <span class="input-icon">✍️</span>
+          <input type="number" id="bio" name="bio_length" min="0" placeholder="Characters in bio" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="ratio">📊 Follower/Following Ratio</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📈</span>
+          <input type="number" id="ratio" name="follower_following_ratio" step="0.01" min="0" placeholder="e.g., 2.5 or 0.8" required>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button type="submit">🔍 Analyze Profile</button>
+        <button type="reset" class="reset-btn">↺ Clear</button>
+      </div>
+    </form>
+
+    {% if prediction %}
+      <div class="result {% if prediction == 'Fake Profile' %}fake{% else %}real{% endif %}">
+        <span class="result-icon">{% if prediction == 'Fake Profile' %}⚠️{% else %}✅{% endif %}</span>
+        {% if prediction == 'Fake Profile' %}
+          This profile appears to be <strong>FAKE</strong>
+        {% else %}
+          This profile appears to be <strong>GENUINE</strong>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <p class="info-text">
+      💡 This detector analyzes your input against machine learning models trained on real social media data. 
+      Results are predictions and should be used as guidance only.
+    </p>
+  </div>
+
+  <script>
+    // Update input values in real-time
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('input', function() {
+        const valueDisplay = this.parentElement.parentElement.querySelector('.value-display');
+        if (valueDisplay) {
+          valueDisplay.textContent = 'Value: ' + this.value;
+        }
+      });
+    });
+
+    // Form submission feedback
+    document.getElementById('profileForm').addEventListener('submit', function() {
+      const btn = this.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '⏳ Analyzing...';
+      btn.disabled = true;
+      
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }, 1000);
+    });
+
+    // Add input validation
+    document.getElementById('profile_pic').addEventListener('change', function() {
+      if (this.value > 1 || this.value < 0) {
+        this.value = Math.max(0, Math.min(1, this.value));
+      }
+    });
+  </script>
+</body>
+</html>
